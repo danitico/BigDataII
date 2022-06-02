@@ -3,35 +3,36 @@ package preprocessing
 import org.apache.spark.sql.DataFrame
 
 class Imbalance extends Serializable {
-  def ros(data: DataFrame, overRate: Double): DataFrame = {
-    val train_positive = data.filter(_.getInt(18) == 1)
-    val train_negative = data.filter(_.getInt(18) == 0)
+  private def getPositiveAndNegativeInstances(dataframe: DataFrame): (DataFrame, Double, DataFrame, Double) = {
+    val positive = dataframe.filter(_.getDouble(0) == 1)
+    val negative = dataframe.filter(_.getDouble(0) == 0)
+    val num_pos = positive.count().toDouble
+    val num_neg = negative.count().toDouble
 
-    val num_pos = train_positive.count().toDouble
-    val num_neg = train_negative.count().toDouble
+    (positive, num_pos, negative, num_neg)
+  }
+
+  def ros(data: DataFrame, overRate: Double): DataFrame = {
+    val (positive, num_pos, negative, num_neg) = this.getPositiveAndNegativeInstances(data)
 
     if (num_pos > num_neg) {
       val fraction = (num_pos * overRate) / num_neg
-      train_positive.union(train_negative.sample(withReplacement = true, fraction))
+      positive.union(negative.sample(withReplacement = true, fraction))
     } else {
       val fraction = (num_neg * overRate) / num_pos
-      train_negative.union(train_positive.sample(withReplacement = true, fraction))
+      negative.union(positive.sample(withReplacement = true, fraction))
     }
   }
 
   def rus(data: DataFrame): DataFrame = {
-    val train_positive = data.filter(_.getInt(18) == 1)
-    val train_negative = data.filter(_.getInt(18) == 0)
-
-    val num_pos = train_positive.count().toDouble
-    val num_neg = train_negative.count().toDouble
+    val (positive, num_pos, negative, num_neg) = this.getPositiveAndNegativeInstances(data)
 
     if (num_pos > num_neg) {
       val fraction = num_neg / num_pos
-      train_negative.union(train_positive.sample(withReplacement = false, fraction))
+      negative.union(positive.sample(withReplacement = false, fraction))
     } else {
       val fraction = num_pos / num_neg
-      train_positive.union(train_negative.sample(withReplacement = false, fraction))
+      positive.union(negative.sample(withReplacement = false, fraction))
     }
   }
 }
