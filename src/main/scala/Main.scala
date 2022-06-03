@@ -1,7 +1,7 @@
 import org.apache.spark.sql.{SparkSession, DataFrame}
 import org.apache.spark.ml.feature.VectorAssembler
 
-import preprocessing.Imbalance
+import preprocessing.{Imbalance, Scaler}
 
 object Main {
   def readDataset(session: SparkSession, path: String): DataFrame = {
@@ -30,13 +30,21 @@ object Main {
 
     try {
       val train = readDataset(spark, trainDatasetPath)
-      // val test = readDataset(spark, testDatasetPath)
+      val test = readDataset(spark, testDatasetPath)
+
+      val scaler = new Scaler("features")
+      scaler.fit(train)
+      val trainScaled = scaler.transform(train)
+      val testScaled = scaler.transform(test)
+
+      trainScaled.show()
+      testScaled.show()
+
+      trainScaled.groupBy("label").count().show()
+
       val imbalance = new Imbalance()
-
-      train.groupBy("label").count().show()
-
-      imbalance.ros(train, 1.0).groupBy("label").count().show()
-      imbalance.rus(train).groupBy("label").count().show()
+      imbalance.ros(trainScaled, 1.0).groupBy("label").count().show()
+      imbalance.rus(trainScaled).groupBy("label").count().show()
     } catch {
       case _: Throwable => spark.stop()
     }
