@@ -9,7 +9,7 @@ class Metric {
     evaluator.setMetricName("truePositiveRateByLabel")
 
     val tnr = evaluator.evaluate(labelAndPrediction)
-    val tpr = evaluator.setMetricLabel(1.0).evaluate(labelAndPrediction)
+    val tpr = evaluator.setMetricLabel(1).evaluate(labelAndPrediction)
 
     tpr * tnr
   }

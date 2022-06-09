@@ -4,8 +4,8 @@ import org.apache.spark.sql.DataFrame
 
 class Imbalance extends Serializable {
   private def getPositiveAndNegativeInstances(dataframe: DataFrame): (DataFrame, Double, DataFrame, Double) = {
-    val positive = dataframe.filter(_.getDouble(0) == 1)
-    val negative = dataframe.filter(_.getDouble(0) == 0)
+    val positive = dataframe.filter(_.getInt(0) == 1)
+    val negative = dataframe.filter(_.getInt(0) == 0)
     val num_pos = positive.count().toDouble
     val num_neg = negative.count().toDouble
 

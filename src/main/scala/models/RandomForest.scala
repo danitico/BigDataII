@@ -13,7 +13,7 @@ class RandomForest {
       "features"
     ).setPredictionCol(
       "prediction"
-    ).setNumTrees(10).fit(train)
+    ).setNumTrees(10).setSeed(42).fit(train)
   }
 
   def transform(test: DataFrame): DataFrame = {
